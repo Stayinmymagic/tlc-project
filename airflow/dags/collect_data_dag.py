@@ -72,8 +72,6 @@ def donwload_and_upload_dag(dag, taxi_url_template, taxi_airflow_template, taxi_
             }
         )
 
-        # bigquery_external_table_task
-
 
         # remove local data task
         rm_local_data_task = BashOperator(
