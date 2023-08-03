@@ -1,4 +1,4 @@
-CREATE OR REPLACE TABLE `trips_data_all.yellow_tripdata` 
+CREATE OR REPLACE TABLE `staging.yellow_tripdata` 
   PARTITION BY DATE(pickup_datetime) AS
   SELECT 
     -- create surrogate key

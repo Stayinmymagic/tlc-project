@@ -18,7 +18,7 @@ PARTITION BY DATE(pickup_datetime) AS
     cast(pickup_datetime as timestamp) as pickup_datetime,
 
     -- trip info 
-    cast(trip_miles as numeric) as trip_miles,
+    cast(trip_miles as numeric) as trip_distance,
     cast(trip_time/60 as numeric) as trip_time_mins,
     cast(base_passenger_fare as numeric) as  base_passenger_fare,
     cast(tolls as numeric) as tolls_fee,

@@ -8,7 +8,7 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from geopy.geocoders import Nominatim
 from google.cloud import storage
-from airflow.providers.google.cloud.operators.bigquery import BigQueryCreateExternalTableOperator, BigQueryCreateEmptyTableOperator
+from airflow.providers.google.cloud.operators.bigquery import BigQueryCreateExternalTableOperator, BigQueryCreateEmptyTableOperator,BigQueryInsertJobOperator
 import pandas as pd
 PROJECT_ID = os.environ.get("GCP_PROJECT_ID")
 BUCKET = os.environ.get("GCP_GCS_BUCKET")
@@ -59,19 +59,19 @@ with DAG(
     max_active_runs = 2,
     tags = ['tlc-project']
 ) as dag:
-    # add_lat_long_task = PythonOperator(
-    #     task_id = "add_lat_long_task",
-    #     python_callable=add_lat_long
-    # )
-    # upload_to_gcs_task = PythonOperator(
-    #         task_id = "upload_to_gcs_task",
-    #         python_callable = upload_to_gcs,
-    #         op_kwargs = {
-    #             "bucket" : BUCKET,
-    #             "object_name": "raw/taxi_zone/taxi_zone_lookup_new.csv",
-    #             "local_path": AIRFLOW_HOME+"taxi_zone_lookup_new.csv"
-    #         }
-    #     )
+    add_lat_long_task = PythonOperator(
+        task_id = "add_lat_long_task",
+        python_callable=add_lat_long
+    )
+    upload_to_gcs_task = PythonOperator(
+            task_id = "upload_to_gcs_task",
+            python_callable = upload_to_gcs,
+            op_kwargs = {
+                "bucket" : BUCKET,
+                "object_name": "raw/taxi_zone/taxi_zone_lookup_new.csv",
+                "local_path": AIRFLOW_HOME+"taxi_zone_lookup_new.csv"
+            }
+        )
     create_zone_table_task = BigQueryCreateExternalTableOperator(
         task_id="create_zone_externaltable_task",
         table_resource={
@@ -101,7 +101,30 @@ with DAG(
         }
         
     )
-    # create table
-    # delete external table
-    # add_lat_long_task >> upload_to_gcs_task >> create_zone_table_task
-    # create_zone_table_task
+    create_core_zone_table_task = BigQueryCreateEmptyTableOperator(
+        task_id = "create_core_zone_table",
+        dataset_id = 'core',
+        table_id = 'dim_zones',
+        schema_fields = [
+            {"name": 'locationid', "type": "INTEGER", "mode":"NULLABLE"},
+            {"name": 'borough', "type": "STRING", "mode":"NULLABLE"},
+            {"name": 'zone', "type": "STRING", "mode":"NULLABLE"},
+            {"name": 'service_zone', "type": "STRING", "mode":"NULLABLE"},
+            {"name": 'lat', "type": "FLOAT", "mode":"NULLABLE"},
+            {"name": 'long', "type": "FLOAT", "mode":"NULLABLE"},
+            {"name": 'geopoint', "type": "GEOGRAPHY", "mode":"NULLABLE"},
+
+        ]
+    )	
+    CREATE_ZONE_TBL_QUERY = open(f'/opt/airflow/dags/sql/create_core_zone.sql', 'r').read()
+    insert_zone_query_task = BigQueryInsertJobOperator(
+        task_id = "insert_zone_query_task",
+        configuration = {
+                "query":{
+                    "query": CREATE_ZONE_TBL_QUERY,
+                    "useLegacySql":False
+                }
+            }
+    )
+    add_lat_long_task >> upload_to_gcs_task >> create_zone_table_task >> create_core_zone_table_task >> insert_zone_query_task
+    
