@@ -1,7 +1,6 @@
 #!/bin/bash
 
-echo "Changing permissions for dbt folder..."
-cd ~/tlc-project/ && sudo chmod -R 777 dbt
+cd ~/tlc-project/ 
 
 echo "Building airflow docker images..."
 cd ~/tlc-project/airflow
