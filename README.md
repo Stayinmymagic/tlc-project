@@ -10,3 +10,6 @@
 
 * Create external table, partitioned table, fact table in Bigquery.
 ![image](https://github.com/Stayinmymagic/tlc-project/blob/master/images/transform%20data%20dag.png)
+
+* Design a simple dashboard in Looker Studio
+![image](https://github.com/Stayinmymagic/tlc-project/blob/master/images/Dashboard.png)
