@@ -102,18 +102,18 @@ with DAG(
         create_core_fact_table_task = BigQueryCreateEmptyTableOperator(
             task_id = "create_core_fact_table",
             dataset_id = 'core',
-            table_id = 'fact_trips',
+            table_id = 'yg_fact_table',
             )	
         create_core_hvfhv_fact_table_task = BigQueryCreateEmptyTableOperator(
             task_id = "create_core_hvfhv_fact_table",
             dataset_id = 'core',
-            table_id = 'hvfhv_fact_trips',
+            table_id = 'hvfhv_fact_table',
             )	
         
         CREATE_FACT_TB_QUERY = open(f'/opt/airflow/dags/sql/create_fact_trips.sql', 'r').read()
         ## create fact table by view
         insert_yg_fact_table_task = BigQueryInsertJobOperator(
-            task_id="create_yg_fact_table",
+            task_id="insert_yg_fact_table",
             trigger_rule='none_failed',
             configuration = {
                 "query" :{
@@ -132,7 +132,7 @@ with DAG(
         CREATE_HVFHV_FACT_TB_QUERY = open(f'/opt/airflow/dags/sql/create_hvfhv_fact_trips.sql', 'r').read()
         ## create fact table by view
         insert_hvfhv_fact_table_task = BigQueryInsertJobOperator(
-            task_id="create_hvfhv_fact_table",
+            task_id="insert_hvfhv_fact_table",
             trigger_rule='none_failed',
             configuration = {
                 "query" :{
